@@ -110,7 +110,7 @@ git clone --depth 1 git://github.com/mbcladwell/limsn.git
 initdb()
 {
 
-
+echo "in initdb"
     
 }
 
