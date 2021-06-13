@@ -66,7 +66,7 @@ welcome()
 
 This script installs LIMS*Nucleus on your system
 
-htt://www.labsolns.com
+http://www.labsolns.com
 
 EOF
     echo -n "Press return to continue..."
@@ -74,14 +74,65 @@ EOF
 }
 
 
+updatesys()
+{
+    sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
+    apt-get update
+    apt-get upgrade
+    apt-get install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
+  
+}
+
+buildstuff()
+{
+ git clone --depth 1 git://github.com/opencog/guile-dbi.git \
+        cd guile-dbi/guile-dbi && ./autogen.sh && ./configure && make -j \
+        && make install && ldconfig && cd .. \
+        \
+        && cd guile-dbd-postgresql \
+        && ./autogen.sh && ./configure && make -j \
+        && make install && ldconfig && cd ../../ && rm -fr guile-dbi
+
+
+git clone --depth 1 git://github.com/mbcladwell/artanis.git 
+
+        cd artanis ./autogen.sh && ./configure && make -j \
+        && make install && ldconfig && cd .. \
+
+					  
+	mkdir projects
+	cd ./projects
+git clone --depth 1 git://github.com/mbcladwell/limsn.git 
+
+    
+}
+
+initdb()
+{
+
+
+    
+}
+
+
+configure()
+{
+    export PATH "$PATH:/usr/local/bin"   ## for art
+    export GUILE_LOAD_PATH="/usr/share/guile/site/3.0:/limsn:/usr/local/share/guile/site/2.2${GUILE_LOAD_PATH:+:}$GUILE_LOAD_PATH"
+    export GUILE_LOAD_COMPILED_PATH="/usr/lib/x86_64-linux-gnu/guile/3.0/site-ccache:/usr/lib/guile/3.0/site-ccache:/usr/lib/x86_64-linux-gnu/guile/2.2/site-ccache${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH"
+}
+
+
 main()
 {
     local tmp_path
     welcome
-
+    
     _msg "Starting installation ($(date))"
 
-
+    updatesys
+    buildstuff
+    
     _msg "${INF}cleaning up ${tmp_path}"
     rm -r "${tmp_path}"
 
