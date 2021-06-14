@@ -121,9 +121,9 @@ initdb()
     sed 's/\#listen_addresses =/listen_addresses =/' $PGCONF
 
     eval "pg_ctlcluster $PGMAJOR main restart"
-    psql -U postgres -h 127.0.0.1 -a -f ~/ln9/initdb.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f ~/ln9/create-db.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f ~/ln9/example-data.sql
+    psql -U postgres -h 127.0.0.1 -a -f ~/ln9/postgres/initdb.sql
+    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f ~/ln9/postgres/create-db.sql
+    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f ~/ln9/postgres/example-data.sql
     
     
 }
