@@ -77,31 +77,33 @@ EOF
 updatesys()
 {
     sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
-    apt-get update
-    apt-get upgrade
-    apt-get install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
+    apt-get --assume-yes update
+    apt-get --assume-yes upgrade
+    DEBIAN_FRONTEND=noninteractive apt-get install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
   
 }
 
 buildstuff()
 {
- git clone --depth 1 git://github.com/opencog/guile-dbi.git \
-        cd guile-dbi/guile-dbi && ./autogen.sh && ./configure && make -j \
-        && make install && ldconfig && cd .. \
-        \
-        && cd guile-dbd-postgresql \
-        && ./autogen.sh && ./configure && make -j \
-        && make install && ldconfig && cd ../../ && rm -fr guile-dbi
+    git clone --depth 1 git://github.com/opencog/guile-dbi.git
+    cd guile-dbi/guile-dbi
+    ./autogen.sh && ./configure && make -j && make install && ldconfig
+    cd ..
+        
+    cd guile-dbd-postgresql 
+    ./autogen.sh && ./configure && make -j  && make install && ldconfig
+    cd ../../
+    rm -fr guile-dbi
 
 
 git clone --depth 1 git://github.com/mbcladwell/artanis.git 
 
-        cd artanis ./autogen.sh && ./configure && make -j \
-        && make install && ldconfig && cd .. \
-
+cd artanis
+./autogen.sh && ./configure && make -j && make install && ldconfig
+cd .. 
 					  
-	mkdir projects
-	cd ./projects
+mkdir projects
+cd ./projects
 git clone --depth 1 git://github.com/mbcladwell/limsn.git 
 
     
@@ -109,8 +111,20 @@ git clone --depth 1 git://github.com/mbcladwell/limsn.git
 
 initdb()
 {
+    _msg "configuring db"
 
-echo "in initdb"
+    PGMAJOR=$(eval "ls /etc/postgresql")
+    PGHBACONF="/etc/postgresql/$PGMAJOR/main/pg_hba.conf"
+    sed 's/host[ ]*postgres[ ]*all[ ]*127.0.0.1[\/32[ ]*md5/host    all        all             127.0.0.1\/32        trust/' $PGHBACONF
+
+    PGCONF="/etc/postgresql/$PGMAJOR/main/postgresql.conf"
+    sed 's/\#listen_addresses =/listen_addresses =/' $PGCONF
+
+    eval "pg_ctlcluster $PGMAJOR main restart"
+    psql -U postgres -h 127.0.0.1 -a -f ~/ln9/initdb.sql
+    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f ~/ln9/create-db.sql
+    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f ~/ln9/example-data.sql
+    
     
 }
 
