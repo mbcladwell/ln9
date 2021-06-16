@@ -5,3 +5,10 @@ Small required to make gnutls
 Planning on no containers
 
 instance: i-00df6de260117b7b3
+
+this script is destined for github.com/labsolns/awsinstall
+
+nohup ./process &    ;;to detach
+
+ps -ef to see processes
+

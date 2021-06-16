@@ -74,6 +74,17 @@ EOF
 }
 
 
+query()
+{
+    echo Enter IP address:
+    read IPADDRESS
+    
+    echo Maximum number of plates per plate set:
+    read MAXNUMPLATES
+    
+}
+
+
 updatesys()
 {
     sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
@@ -85,6 +96,7 @@ updatesys()
 
 buildstuff()
 {
+    cd
     git clone --depth 1 git://github.com/opencog/guile-dbi.git
     cd guile-dbi/guile-dbi
     ./autogen.sh && ./configure && make -j && make install && ldconfig
@@ -95,18 +107,24 @@ buildstuff()
     cd ../../
     rm -fr guile-dbi
 
+    cd
+    git clone --depth 1 git://github.com/mbcladwell/artanis.git 
 
-git clone --depth 1 git://github.com/mbcladwell/artanis.git 
-
-cd artanis
-./autogen.sh && ./configure && make -j && make install && ldconfig
-cd .. 
+    cd artanis
+    ./autogen.sh && ./configure && make -j && make install && ldconfig
+    cd .. 
 					  
-mkdir projects
-cd ./projects
+    mkdir projects
+    cd ./projects
 git clone --depth 1 git://github.com/mbcladwell/limsn.git 
 
-    
+sudo chmod -R a=rwx ~/projects/limsn
+
+sed -i 's/host.name = 127.0.0.1/host.name = $IPADDRESS/' ~/projects/limsn/limsn/conf/artanis.conf
+sed -i 's/(define maxnumplates "[0-9]*")/(define maxnumplates "$MAXNUMPLATES")/' ~/projects/limsn/limsn/lib/labsolns/artass.scm
+
+
+
 }
 
 initdb()
@@ -115,10 +133,10 @@ initdb()
 
     PGMAJOR=$(eval "ls /etc/postgresql")
     PGHBACONF="/etc/postgresql/$PGMAJOR/main/pg_hba.conf"
-    sed 's/host[ ]*postgres[ ]*all[ ]*127.0.0.1[\/32[ ]*md5/host    all        all             127.0.0.1\/32        trust/' $PGHBACONF
+    sed -i 's/host[ ]*postgres[ ]*all[ ]*127.0.0.1[\/32[ ]*md5/host    all        all             127.0.0.1\/32        trust/' $PGHBACONF
 
     PGCONF="/etc/postgresql/$PGMAJOR/main/postgresql.conf"
-    sed 's/\#listen_addresses =/listen_addresses =/' $PGCONF
+    sed -i 's/\#listen_addresses =/listen_addresses =/' $PGCONF
 
     eval "pg_ctlcluster $PGMAJOR main restart"
     psql -U postgres -h 127.0.0.1 -a -f ~/ln9/postgres/initdb.sql
@@ -131,9 +149,18 @@ initdb()
 
 configure()
 {
-    export PATH "$PATH:/usr/local/bin"   ## for art
-    export GUILE_LOAD_PATH="/usr/share/guile/site/3.0:/limsn:/usr/local/share/guile/site/2.2${GUILE_LOAD_PATH:+:}$GUILE_LOAD_PATH"
-    export GUILE_LOAD_COMPILED_PATH="/usr/lib/x86_64-linux-gnu/guile/3.0/site-ccache:/usr/lib/guile/3.0/site-ccache:/usr/lib/x86_64-linux-gnu/guile/2.2/site-ccache${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH"
+    touch ~/.bash_profile
+    
+    echo "export PATH=\"$PATH:/usr/local/bin\"" >> ~/.bash_profile   ## for art
+    echo "export GUILE_LOAD_PATH=\"/usr/share/guile/site/3.0:/limsn:/usr/local/share/guile/site/2.2${GUILE_LOAD_PATH:+:}$GUILE_LOAD_PATH\"" >> ~/.bash_profile  
+    echo "export GUILE_LOAD_COMPILED_PATH=\"/usr/lib/x86_64-linux-gnu/guile/3.0/site-ccache:/usr/lib/guile/3.0/site-ccache:/usr/lib/x86_64-linux-gnu/guile/2.2/site-ccache${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH\"" >> ~/.bash_profile
+
+
+    touch ~/run-limsn.sh
+    echo "cd ~/projects/limsn/limsn"
+    echo "art work -h 0.0.0.0"
+    chmod 777 ~/run-limsn.sh
+    
 }
 
 
@@ -143,17 +170,19 @@ main()
     welcome
     
     _msg "Starting installation ($(date))"
-
+    
+    query
     updatesys
     buildstuff
+    configure
     
     _msg "${INF}cleaning up ${tmp_path}"
     rm -r "${tmp_path}"
 
-    _msg "${PAS}Guix has successfully been installed!"
+    _msg "${PAS}LIMS*Nucleus has successfully been installed!"
 
     # Required to source /etc/profile in desktop environments.
-    _msg "${INF}Please log out and back in to complete the installation."
+    _msg "${INF}Run 'nohup ~/run-limsn.sh &' to start the server in detached mode."
  }
 
 main "$@"
