@@ -4,5 +4,5 @@
 echo Enter IP address:
 read IPADDRESS
 
-
-echo $IPADDRESS
+echo Maximum number of plates per plate set:
+read MAXNUMPLATES

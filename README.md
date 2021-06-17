@@ -12,3 +12,6 @@ nohup ./process &    ;;to detach
 
 ps -ef to see processes
 
+
+restart services without asking?
+

@@ -90,7 +90,7 @@ updatesys()
     sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
     apt-get --assume-yes update
     apt-get --assume-yes upgrade
-    DEBIAN_FRONTEND=noninteractive apt-get install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
+    apt-get  --assume-yes install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
   
 }
 
