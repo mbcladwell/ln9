@@ -7,9 +7,9 @@ then
     exec bash "$0" "$@"
 fi
 
-set -e
+# set -e
 
-[ "$UID" -eq 0 ] || { echo "This script must be run as root."; exit 1; }
+# [ "$UID" -eq 0 ] || { echo "This script must be run as root."; exit 1; }
 
 
 PAS=$'[ \033[32;1mPASS\033[0m ] '
@@ -87,10 +87,10 @@ query()
 
 updatesys()
 {
-    sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
-    apt-get --assume-yes update
-    apt-get --assume-yes upgrade
-    apt-get  --assume-yes install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
+    sudo sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
+    sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes upgrade
+    sudo DEBIAN_FRONTEND=noninteractive apt-get  --assume-yes install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
   
 }
 
@@ -99,11 +99,13 @@ buildstuff()
     cd
     git clone --depth 1 git://github.com/opencog/guile-dbi.git
     cd guile-dbi/guile-dbi
-    ./autogen.sh && ./configure && make -j && make install && ldconfig
+    ./autogen.sh && ./configure && make -j
+    sudo make install && ldconfig
     cd ..
         
     cd guile-dbd-postgresql 
-    ./autogen.sh && ./configure && make -j  && make install && ldconfig
+    ./autogen.sh && ./configure && make -j
+    sudo make install && ldconfig
     cd ../../
     rm -fr guile-dbi
 
@@ -111,17 +113,18 @@ buildstuff()
     git clone --depth 1 git://github.com/mbcladwell/artanis.git 
 
     cd artanis
-    ./autogen.sh && ./configure && make -j && make install && ldconfig
+    ./autogen.sh && ./configure && make -j
+    sudo make install && ldconfig
     cd .. 
 					  
-    mkdir projects
-    cd ./projects
-git clone --depth 1 git://github.com/mbcladwell/limsn.git 
+    mkdir /home/admin/projects
+    cd /home/admin/projects
+    git clone --depth 1 git://github.com/mbcladwell/limsn.git 
 
-sudo chmod -R a=rwx ~/projects/limsn
+    sudo chmod -R a=rwx /home/admin/projects/limsn
 
-sed -i 's/host.name = 127.0.0.1/host.name = $IPADDRESS/' ~/projects/limsn/limsn/conf/artanis.conf
-sed -i 's/(define maxnumplates "[0-9]*")/(define maxnumplates "$MAXNUMPLATES")/' ~/projects/limsn/limsn/lib/labsolns/artass.scm
+    sed -i 's/host.name = 127.0.0.1/host.name = $IPADDRESS/' /home/admin/projects/limsn/limsn/conf/artanis.conf
+    sed -i 's/(define maxnumplates "[0-9]*")/(define maxnumplates "$MAXNUMPLATES")/' /home/admin/projects/limsn/limsn/lib/labsolns/artass.scm
 
 
 
@@ -168,7 +171,7 @@ main()
 {
     local tmp_path
     welcome
-    
+    export DEBIAN_FRONTEND=noninteractive 
     _msg "Starting installation ($(date))"
     
     query
