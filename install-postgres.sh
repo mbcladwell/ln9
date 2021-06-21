@@ -86,6 +86,11 @@ updatesys()
 initdb()
 {
     _msg "configuring db"
+    mkdir /home/admin/projects
+    cd /home/admin/projects
+    git clone --depth 1 git://github.com/mbcladwell/limsn.git 
+
+    sudo chmod -R a=rwx /home/admin/projects/limsn
 
     PGMAJOR=$(eval "ls /etc/postgresql")
     PGHBACONF="/etc/postgresql/$PGMAJOR/main/pg_hba.conf"
@@ -95,9 +100,9 @@ initdb()
     sudo sed -i 's/\#listen_addresses =/listen_addresses =/' $PGCONF
 
     eval "sudo pg_ctlcluster $PGMAJOR main restart"
-    psql -U postgres -h 127.0.0.1 -a -f /home/admin/ln9/postgres/initdb.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/ln9/postgres/create-db.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/ln9/postgres/example-data.sql
+    psql -U postgres -h 127.0.0.1 -a -f /home/admin/projects/limsn/limsn/postgres/initdb.sql
+    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/create-db.sql
+    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/example-data.sql
     
     
 }
