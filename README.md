@@ -15,3 +15,8 @@ ps -ef to see processes
 
 restart services without asking?
 
+configuring base password skip
+
+restart services without asking
+
+configure openssh server question

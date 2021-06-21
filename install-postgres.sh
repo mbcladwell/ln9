@@ -74,60 +74,13 @@ EOF
 }
 
 
-query()
-{
-    echo Enter IP address:
-    read IPADDRESS
-    
-    echo Maximum number of plates per plate set:
-    read MAXNUMPLATES
-    
-}
-
-
 updatesys()
 {
     sudo sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
     sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes update
     sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes upgrade
-    sudo DEBIAN_FRONTEND=noninteractive apt-get  --assume-yes install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
+    sudo DEBIAN_FRONTEND=noninteractive apt-get  --assume-yes install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config nettle-dev 
   
-}
-
-buildstuff()
-{
-    cd
-    git clone --depth 1 git://github.com/opencog/guile-dbi.git
-    cd guile-dbi/guile-dbi
-    ./autogen.sh && ./configure && make -j
-    sudo make install && ldconfig
-    cd ..
-        
-    cd guile-dbd-postgresql 
-    ./autogen.sh && ./configure && make -j
-    sudo make install && ldconfig
-    cd ../../
-    rm -fr guile-dbi
-
-    cd
-    git clone --depth 1 git://github.com/mbcladwell/artanis.git 
-
-    cd artanis
-    ./autogen.sh && ./configure && make -j
-    sudo make install && ldconfig
-    cd .. 
-					  
-    mkdir /home/admin/projects
-    cd /home/admin/projects
-    git clone --depth 1 git://github.com/mbcladwell/limsn.git 
-
-    sudo chmod -R a=rwx /home/admin/projects/limsn
-
-    sed -i 's/host.name = 127.0.0.1/host.name = $IPADDRESS/' /home/admin/projects/limsn/limsn/conf/artanis.conf
-    sed -i 's/(define maxnumplates "[0-9]*")/(define maxnumplates "$MAXNUMPLATES")/' /home/admin/projects/limsn/limsn/lib/labsolns/artass.scm
-
-
-
 }
 
 initdb()
@@ -174,9 +127,7 @@ main()
     export DEBIAN_FRONTEND=noninteractive 
     _msg "Starting installation ($(date))"
     
-    query
     updatesys
-    buildstuff
     configure
     
     _msg "${INF}cleaning up ${tmp_path}"
