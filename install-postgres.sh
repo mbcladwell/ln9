@@ -89,15 +89,15 @@ initdb()
 
     PGMAJOR=$(eval "ls /etc/postgresql")
     PGHBACONF="/etc/postgresql/$PGMAJOR/main/pg_hba.conf"
-    sudo sed -i 's/host[ ]*postgres[ ]*all[ ]*127.0.0.1[\/32[ ]*md5/host    all        all             127.0.0.1\/32        trust/' $PGHBACONF
+    sudo sed -i 's/host[ ]*all[ ]*all[ ]*127.0.0.1\/32[ ]*md5/host    all        all             127.0.0.1\/32        trust/' $PGHBACONF
 
     PGCONF="/etc/postgresql/$PGMAJOR/main/postgresql.conf"
     sudo sed -i 's/\#listen_addresses =/listen_addresses =/' $PGCONF
 
     eval "sudo pg_ctlcluster $PGMAJOR main restart"
-    psql -U postgres -h 127.0.0.1 -a -f /home/admin/projects/limsn/limsn/postgres/initdb.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/create-db.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/example-data.sql
+    psql -U postgres -h 127.0.0.1 -a -f /home/admin/ln9/postgres/initdb.sql
+    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/ln9/postgres/create-db.sql
+    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/ln9/postgres/example-data.sql
     
     
 }
@@ -129,6 +129,7 @@ main()
     
     updatesys
     configure
+    initdb
     
     _msg "${INF}cleaning up ${tmp_path}"
     rm -r "${tmp_path}"
