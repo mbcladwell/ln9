@@ -1,5 +1,7 @@
 #!/bin/sh
 
+
+
 # We require Bash but for portability we'd rather not use /bin/bash or
 # /usr/bin/env in the shebang, hence this hack.
 if [ "x$BASH_VERSION" = "x" ]
@@ -76,10 +78,9 @@ EOF
 
 updatesys()
 {
-    sudo sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
     sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes update
     sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes upgrade
-    sudo DEBIAN_FRONTEND=noninteractive apt-get  --assume-yes install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config nettle-dev 
+    sudo DEBIAN_FRONTEND=noninteractive apt-get  --assume-yes install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev git nano zlib1g-dev libnss3 libnss3-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev nettle-dev 
   
 }
 
@@ -100,9 +101,9 @@ initdb()
     sudo sed -i 's/\#listen_addresses =/listen_addresses =/' $PGCONF
 
     eval "sudo pg_ctlcluster $PGMAJOR main restart"
-    psql -U postgres -h 127.0.0.1 -a -f /home/admin/projects/limsn/limsn/postgres/initdb.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/create-db.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/example-data.sql
+ #   psql -U postgres -h 127.0.0.1 -a -f /home/admin/projects/limsn/limsn/postgres/initdb.sql
+ #   psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/create-db.sql
+ #   psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/example-data.sql
     
     
 }
@@ -113,14 +114,10 @@ configure()
     touch ~/.bash_profile
     
     echo "export PATH=\"$PATH:/usr/local/bin\"" >> ~/.bash_profile   ## for art
-    echo "export GUILE_LOAD_PATH=\"/usr/share/guile/site/3.0:/limsn:/usr/local/share/guile/site/2.2${GUILE_LOAD_PATH:+:}$GUILE_LOAD_PATH\"" >> ~/.bash_profile  
-    echo "export GUILE_LOAD_COMPILED_PATH=\"/usr/lib/x86_64-linux-gnu/guile/3.0/site-ccache:/usr/lib/guile/3.0/site-ccache:/usr/lib/x86_64-linux-gnu/guile/2.2/site-ccache${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH\"" >> ~/.bash_profile
+  #  echo "export GUILE_LOAD_PATH=\"/usr/share/guile/site/3.0:/limsn:/usr/local/share/guile/site/2.2${GUILE_LOAD_PATH:+:}$GUILE_LOAD_PATH\"" >> ~/.bash_profile  
+  #  echo "export GUILE_LOAD_COMPILED_PATH=\"/usr/lib/x86_64-linux-gnu/guile/3.0/site-ccache:/usr/lib/guile/3.0/site-ccache:/usr/lib/x86_64-linux-gnu/guile/2.2/site-ccache${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH\"" >> ~/.bash_profile
 
 
-    touch ~/run-limsn.sh
-    echo "cd ~/projects/limsn/limsn" >> ~/.run-limsn.sh
-    echo "art work -h 0.0.0.0" >> ~/.run-limsn.sh
-    chmod 777 ~/run-limsn.sh
     
 }
 
