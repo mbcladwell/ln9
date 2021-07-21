@@ -42,3 +42,6 @@ $ echo $PATH
 wget https://raw.githubusercontent.com/mbcladwell/artanis/main/guixmod.scm
 guix package --install-from-file=guixmod.scm
 
+    mkdir /home/admin/projects
+    cd /home/admin/projects
+    git clone --depth 1 git://github.com/mbcladwell/limsn.git 
