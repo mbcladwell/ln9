@@ -15,7 +15,6 @@ wget https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh
 chmod +x guix-install.sh
 sudo ./guix-install.sh
 
- guix install glibc-utf8-locales
 
 ## in .profile
     echo "export PATH=\"$PATH:/home/admin/.guix-profile/bin\"" >> ~/.profile   ## for art
@@ -24,9 +23,9 @@ echo "export GUIX_LOCPATH=\"$HOME/.guix-profile/lib/locale\"" >> ~/.profile
     echo "export GUILE_LOAD_PATH=\"/home/admin/.guix-profile/share/guile/site/3.0${GUILE_LOAD_PATH:+:}$GUILE_LOAD_PATH\"" >> ~/.profile  
     echo "export GUILE_LOAD_COMPILED_PATH=\"/home/admin/.guix-profile/lib/guile/3.0/site-ccache:/home/admin/.guix-profile/share/guile/site/3.0${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH\"" >> ~/.profile
 
-    echo "export GUIX_PROFILE=\"/home/admin/.guix-profile\""
-    echo "export LC_ALL=C"
-. "$GUIX_PROFILE/etc/profile"
+    echo "export GUIX_PROFILE=\"/home/admin/.guix-profile\"" >> ~/.profile
+    echo "export LC_ALL=C" >> ~/.profile
+. "/home/admin/.guix-profile/etc/profile"
 
 
 
