@@ -7,11 +7,6 @@ then
     exec bash "$0" "$@"
 fi
 
-# set -e
-
-# [ "$UID" -eq 0 ] || { echo "This script must be run as root."; exit 1; }
-
-
 PAS=$'[ \033[32;1mPASS\033[0m ] '
 ERR=$'[ \033[31;1mFAIL\033[0m ] '
 WAR=$'[ \033[33;1mWARN\033[0m ] '
@@ -87,45 +82,49 @@ query()
 
 updatesys()
 {
-    sudo sed -i '$ a\\ndeb http://deb.debian.org/debian/ sid main contrib non-free\ndeb-src http://deb.debian.org/debian/ sid main contrib non-free' /etc/apt/sources.list
-    sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes upgrade
-    sudo DEBIAN_FRONTEND=noninteractive apt-get  --assume-yes install texinfo ca-certificates postgresql postgresql-client postgresql-contrib libpq-dev automake git autoconf libtool nano zlib1g-dev libnss3 libnss3-dev build-essential lzip libunistring-dev libgmp-dev libgc-dev libffi-dev libltdl-dev libintl-perl libiconv-hook-dev pkg-config guile-3.0 guile-3.0-dev guile-library nettle-dev gnuplot
+
+sudo DEBIAN_FRONTEND=noninteractive apt-get --assume-yes update
+sudo DEBIAN_FRONTEND=noninteractive apt-get  --assume-yes install gnupg git nscd postgresql-client
+wget 'https://sv.gnu.org/people/viewgpg.php?user_id=15145' -qO - | sudo -i gpg --import -
+wget 'https://sv.gnu.org/people/viewgpg.php?user_id=127547' -qO - | sudo -i gpg --import -
+    
   
 }
 
-buildstuff()
+installguix()
 {
-    cd
-    git clone --depth 1 git://github.com/opencog/guile-dbi.git
-    cd guile-dbi/guile-dbi
-    ./autogen.sh && ./configure && make -j
-    sudo make install && ldconfig
-    cd ..
-        
-    cd guile-dbd-postgresql 
-    ./autogen.sh && ./configure && make -j
-    sudo make install && ldconfig
-    cd ../../
-    rm -fr guile-dbi
 
-    cd
-    git clone --depth 1 git://github.com/mbcladwell/artanis.git 
+cd /tmp
+wget https://git.savannah.gnu.org/cgit/guix.git/plain/etc/guix-install.sh
+chmod +x guix-install.sh
+sudo ./guix-install.sh
 
-    cd artanis
-    ./autogen.sh && ./configure && make -j
-    sudo make install && ldconfig
-    cd .. 
-					  
-    mkdir /home/admin/projects
-    cd /home/admin/projects
-    git clone --depth 1 git://github.com/mbcladwell/limsn.git 
 
-    sudo chmod -R a=rwx /home/admin/projects/limsn
+
+cd /home/admin
+## exit
+
+
+## using guile-3.0.2
+guix install glibc-utf8-locales guile-dbi postgresql@13.1 gnuplot
+sudo guix install glibc-utf8-locales
+    
+# After setting `PATH', run `hash guix' to make sure your shell refers to `/home/admin/.config/guix/current/bin/guix'.
+#$ echo $PATH
+#/home/admin/.config/guix/current/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+         
+source $GUIX_PROFILE/etc/profile 
+         
+         
+git clone --depth 1 https://github.com/mbcladwell/limsn.git
+guix package --install-from-file=/home/admin/limsn/artanis51.scm
+
+
+   ## sudo chmod -R a=rwx /home/admin/projects/limsn
 
     sed -i 's/host.name = 127.0.0.1/host.name = $IPADDRESS/' /home/admin/projects/limsn/limsn/conf/artanis.conf
-    sed -i 's/(define maxnumplates "[0-9]*")/(define maxnumplates "$MAXNUMPLATES")/' /home/admin/projects/limsn/limsn/lib/labsolns/artass.scm
-
+    sed -i 's/cookie.maxplates = 10/cookie.maxplates = $MAXNUMPLATES/' /home/admin/projects/limsn/limsn/conf/artanis.conf
+    
 
 
 }
@@ -134,33 +133,42 @@ initdb()
 {
     _msg "configuring db"
 
-    PGMAJOR=$(eval "ls /etc/postgresql")
-    PGHBACONF="/etc/postgresql/$PGMAJOR/main/pg_hba.conf"
-    sudo sed -i 's/host[ ]*postgres[ ]*all[ ]*127.0.0.1[\/32[ ]*md5/host    all        all             127.0.0.1\/32        trust/' $PGHBACONF
+   mkdir lndata
 
-    PGCONF="/etc/postgresql/$PGMAJOR/main/postgresql.conf"
-    sudo sed -i 's/\#listen_addresses =/listen_addresses =/' $PGCONF
+initdb -D /home/admin/lndata
 
-    eval "sudo pg_ctlcluster $PGMAJOR main restart"
-    psql -U postgres -h 127.0.0.1 -a -f /home/admin/projects/limsn/limsn/postgres/initdb.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/create-db.sql
-    psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/projects/limsn/limsn/postgres/example-data.sql
-    
+cp /home/admin/limsn/limsn/postgres/pg_hba.conf /home/admin/lndata
+cp /home/admin/limsn/limsn/postgres/pg_ident.conf /home/admin/lndata
+cp /home/admin/limsn/limsn/postgres/postgresql.conf /home/admin/lndata
+
+pg_ctl -D /home/admin/lndata -l logfile start
+
+psql -U admin -h 127.0.0.1 postgres -a -f /home/admin/limsn/limsn/postgres/initdba.sql
+psql -U admin -h 127.0.0.1 lndb -a -f /home/admin/limsn/limsn/postgres/initdbb.sql
+psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/limsn/limsn/postgres/create-db.sql
+psql -U ln_admin -h 127.0.0.1 -d lndb -a -f /home/admin/limsn/limsn/postgres/example-data.sql
+
     
 }
 
 
 configure()
 {
-    touch ~/.bash_profile
-    
-    echo "export PATH=\"$PATH:/usr/local/bin\"" >> ~/.bash_profile   ## for art
-    echo "export GUILE_LOAD_PATH=\"/usr/share/guile/site/3.0:/limsn:/usr/local/share/guile/site/2.2${GUILE_LOAD_PATH:+:}$GUILE_LOAD_PATH\"" >> ~/.bash_profile  
-    echo "export GUILE_LOAD_COMPILED_PATH=\"/usr/lib/x86_64-linux-gnu/guile/3.0/site-ccache:/usr/lib/guile/3.0/site-ccache:/usr/lib/x86_64-linux-gnu/guile/2.2/site-ccache${GUILE_LOAD_COMPILED_PATH:+:}$GUILE_LOAD_COMPILED_PATH\"" >> ~/.bash_profile
 
+echo "export GUIX_PROFILE=\"/home/admin/.guix-profile\"" >> ~/.bashrc
+echo " . \"$GUIX_PROFILE/etc/profile\"" >> ~/.bashrc
+echo "export LC_ALL=\"C\"" >> ~/.bashrc 
+echo "export GUIX_LOCPATH=\"$HOME/.guix-profile/lib/locale\"" >> /home/admin/.bashrc
+echo "export PGDATA=\"/home/admin/lndata\"" >> /home/admin/.bashrc
+
+
+export GUIX_PROFILE="/home/admin/.guix-profile"
+export LC_ALL="C"
+export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale" 
+export PGDATA="/home/admin/lndata"
 
     touch ~/run-limsn.sh
-    echo "cd ~/projects/limsn/limsn" >> ~/.run-limsn.sh
+    echo "cd ~/limsn/limsn" >> ~/.run-limsn.sh
     echo "art work -h 0.0.0.0" >> ~/.run-limsn.sh
     chmod 777 ~/run-limsn.sh
     
@@ -176,8 +184,9 @@ main()
     
     query
     updatesys
-    buildstuff
     configure
+    installguix
+    
     
     _msg "${INF}cleaning up ${tmp_path}"
     rm -r "${tmp_path}"
